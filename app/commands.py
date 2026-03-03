@@ -24,6 +24,7 @@ from app.forecast import (
 from app.layers import get_layers_advice
 from app.shotcaller import get_shotcaller_message
 from app.restaurant import get_random_restaurant
+from app.checkin import add_checkin, get_active_checkins
 
 CommandHandler = Callable[[telegram.Bot, dict], Awaitable[None]]
 
@@ -176,6 +177,26 @@ async def handle_shotcaller(bot: telegram.Bot, message: dict) -> None:
 @command("whichrestaurant", "Get a restaurant tip in Saalbach-Hinterglemm")
 async def handle_whichrestaurant(bot: telegram.Bot, message: dict) -> None:
     text = get_random_restaurant()
+    await bot.send_message(
+        chat_id=message["chat"]["id"],
+        text=text,
+        parse_mode="Markdown",
+    )
+
+
+@command("checkin", "Check in at a location (usage: /checkin <location>, <group size>)")
+async def handle_checkin(bot: telegram.Bot, message: dict) -> None:
+    text = add_checkin(message)
+    await bot.send_message(
+        chat_id=message["chat"]["id"],
+        text=text,
+        parse_mode="Markdown",
+    )
+
+
+@command("whereiseveryone", "See where everyone is right now")
+async def handle_whereiseveryone(bot: telegram.Bot, message: dict) -> None:
+    text = get_active_checkins()
     await bot.send_message(
         chat_id=message["chat"]["id"],
         text=text,
