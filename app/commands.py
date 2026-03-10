@@ -1,9 +1,19 @@
 from dataclasses import dataclass
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 import telegram
 from telegram import BotCommand
 
+from app.bingo import get_bingo_item_count, get_random_bingo
+from app.checkin import add_checkin, get_active_checkins
+from app.forecast import (
+    MOUNTAIN_ELEVATION,
+    VILLAGE_ELEVATION,
+    get_weather_data,
+    send_daily_forecast,
+)
+from app.joke import get_joke
+from app.layers import get_layers_advice
 from app.mother_of_all_file import (
     get_address,
     get_addresshotel,
@@ -13,18 +23,9 @@ from app.mother_of_all_file import (
     get_name,
     get_rng,
 )
-from app.joke import get_joke
 from app.mountainview import get_saalbach_webcam_url
-from app.forecast import (
-    VILLAGE_ELEVATION,
-    MOUNTAIN_ELEVATION,
-    get_weather_data,
-    send_daily_forecast,
-)
-from app.layers import get_layers_advice
-from app.shotcaller import get_shotcaller_message
 from app.restaurant import get_random_restaurant
-from app.checkin import add_checkin, get_active_checkins
+from app.shotcaller import get_shotcaller_message
 
 CommandHandler = Callable[[telegram.Bot, dict], Awaitable[None]]
 
@@ -43,6 +44,7 @@ def command(name: str, description: str):
     def decorator(func: CommandHandler) -> CommandHandler:
         COMMANDS[name] = Command(name=name, description=description, handler=func)
         return func
+
     return decorator
 
 
@@ -79,9 +81,11 @@ async def handle_help(bot: telegram.Bot, message: dict) -> None:
 async def handle_lol(bot: telegram.Bot, message: dict) -> None:
     await send_message(bot, "lol to you, nerd!", message["chat"]["id"])
 
+
 @command("businessidea", "Generate a business idea")
 async def handle_businessidea(bot: telegram.Bot, message: dict) -> None:
     await send_message(bot, "AI brothel!", message["chat"]["id"])
+
 
 @command("joke", "Get joke of the day")
 async def handle_joke(bot: telegram.Bot, message: dict) -> None:
@@ -200,6 +204,16 @@ async def handle_whereiseveryone(bot: telegram.Bot, message: dict) -> None:
     await bot.send_message(
         chat_id=message["chat"]["id"],
         text=text,
+        parse_mode="Markdown",
+    )
+
+
+@command("bingo", f"Random challenge - first to photo wins beer ({get_bingo_item_count()} options)")
+async def handle_bingo(bot: telegram.Bot, message: dict) -> None:
+    bingo = get_random_bingo()
+    await bot.send_message(
+        chat_id=message["chat"]["id"],
+        text=bingo,
         parse_mode="Markdown",
     )
 
